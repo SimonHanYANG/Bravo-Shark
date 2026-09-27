@@ -1,0 +1,90 @@
+职场鱼塘 · 沧澜湾风格版 —— 全部源代码（可直接构建）
+导出时间：2026-09-27
+原目录：/Users/cui/WorkBuddy/2026-09-18-01-45-03/outputs/build/
+
+════════════════════════════════════════
+一、怎么构建（三步）
+════════════════════════════════════════
+  1. 把整个 zip 解压到一个空目录（比如 ~/Desktop/鱼塘源码/）
+  2. cd aqua_clw
+  3. env -u NODE_OPTIONS python3 build.py
+
+  产物会写到「aqua_clw 的上两级」，文件名 职场鱼塘_沧澜湾风格版.html。
+  ★ 想让产物落在当前目录，把 aqua_clw/build.py 第 10 行的 OUT 改成：
+      OUT = os.path.abspath(os.path.join(BASE, '../../职场鱼塘_沧澜湾风格版.html'))
+    → 改成
+      OUT = os.path.abspath(os.path.join(BASE, '职场鱼塘_沧澜湾风格版.html'))
+
+  ★ env -u NODE_OPTIONS 必须加：本机 shell 带了 NODE_OPTIONS=--use-system-ca，
+    会让 node 拒绝启动，构建会中断在「语法检查」那一步。
+  ★ build.py 带 330+ 条断言，任何一条不过就**不写产物**。
+    看不到产物时先看断言输出，别怀疑浏览器。
+
+════════════════════════════════════════
+二、为什么包里有两个目录
+════════════════════════════════════════
+  aqua_clw/   ← 你要的：沧澜湾风格版的全部源码（37 个文件）
+  aqua_v3/    ← 双通道版的源码（37 个文件），不是给你看的，是构建需要的
+
+  原因：aqua_clw/build.py 里有一条断言，要求「除 style.html 外，其余 36 个源文件
+  与双通道版逐字节相同」—— 这是「只换皮、功能一行未改」的硬证据，它需要真的去读
+  ../aqua_v3/ 的文件。少了这个目录，构建会直接报 FileNotFoundError。
+
+  ★ 改功能时两棵树要同步改，否则这条断言会红 —— 这正是它的用途。
+
+════════════════════════════════════════
+三、aqua_clw 的文件怎么分（37 个）
+════════════════════════════════════════
+  build.py            构建入口（拼装 36 个源文件 + 全部断言）
+  ── 样式与结构 ──
+  style.html          全部 CSS（沧澜湾皮肤是追加在这份末尾的一段）
+  body.html           DOM 骨架（导航 10 项 + 12 个视图面板 + 侧栏底部 6 个入口）
+  ── 数据层 ──
+  data_jd.js          20 类岗位数据
+  data_persona.js     100 型四维人格
+  data_roles.js       100 条职场人物图鉴
+  data_hr.js          全行业 HR 题库
+  prompt.js           五层调教协议（内置不对外展示）
+  ── 渲染与美术 ──
+  avatar.js           鲨鱼绘制器（整鱼轮廓 + 六品种）
+  icons.js            侧栏方块鲨鱼图标
+  fish3d.js           鱼池泳道
+  viz.js              雷达图 / 折线图
+  reef.js             鱼池、商店、装扮
+  ── 核心逻辑 ──
+  app.js              主逻辑（状态 / 视图调度 / 简历解析 / 面试）
+  navpin.js           侧栏动线与置顶
+  duel.js             群面多 NPC 博弈
+  interviewer.js      六类面试官
+  overview.js         概览卡（每次切页重算）
+  ── 功能模块 ──
+  dispute.js          劳议鲨手 10 类场景
+  dispute_more.js     劳议鲨手 在职阶段 7 类
+  blackbox.js         鱼群密语（黑话 50 条 + 高语境分析）
+  rival.js            你的竞品
+  evolve.js           进化雷达
+  lab.js              小测 / 项目经历 / 能力分析 / 改简历
+  status.js           工作状态
+  school.js           小鱼课堂
+  growth.js           分享与转化插入点
+  share.js            画像卡导出
+  todo.js             待办 / 日历导出
+  resume_edit.js      简历结构化编辑
+  convert.js          付费与分享插入点
+  member.js           工作节律（会员锁已移除，算法留档）
+  pay.js              付费服务（价格不预设）
+  ── 内容与外壳 ──
+  cases.js            实战案例
+  campus.js           院校版（2026-09-27 新增）
+  firstrun.js         首屏引导 + 方法与来源
+  track.js            本地埋点
+
+════════════════════════════════════════
+四、其余注意
+════════════════════════════════════════
+  1. 改样式改 style.html。皮肤层就是追加在它末尾的那一段，想回退删掉那一段即可。
+     （原目录另有 _clw_skin.css 与 _patch_splash.py，是那层皮肤的单独留档与重放脚本，
+       本包未收 —— 主源始终是 style.html。）
+  2. build.py 里的 NODE_BIN 是本机绝对路径，找不到时会自动回落到 PATH 里的 node。
+  3. 全部源码文件为 UTF-8。
+  4. 生产环境用的验收脚本（_smoke*.js / _shot*.js）与截图未收进本包。

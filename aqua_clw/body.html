@@ -1,0 +1,484 @@
+<body>
+<!-- 全局水波纹背景：极低透明度，只做氛围，不干扰阅读 -->
+<div class="ripple" aria-hidden="true"></div>
+
+<!-- ==================== 开场景观：一片水，鲨鱼在游 ==================== -->
+<div class="splash" id="splash">
+  <!-- 水层：绝对定位，绝不能变成 flex item（否则会把居中文案挤偏） -->
+  <div class="swater" aria-hidden="true">
+    <div class="caust"></div>
+    <div class="caust c2"></div>
+    <div class="sglim"></div>
+  </div>
+  <!-- 水面波纹：三条错开的亮线，暗示「头顶就是水面」 -->
+  <div class="swater" aria-hidden="true">
+    <div class="surf"></div>
+    <div class="surf s2"></div>
+    <div class="surf s3"></div>
+  </div>
+  <!-- 丁达尔光：五柱，逐柱给不同相位 -->
+  <div class="srays" aria-hidden="true">
+    <i style="left:5%;width:13%;--rot:-7deg"></i>
+    <i style="left:19%;width:8%;--rot:-4deg"></i>
+    <i style="left:36%;width:11%;--rot:-2deg"></i>
+    <i style="left:58%;width:9%;--rot:1deg"></i>
+    <i style="left:76%;width:14%;--rot:4deg"></i>
+  </div>
+  <div id="splashBub"></div>
+  <div class="snow" id="splashSnow" aria-hidden="true"></div>
+  <div id="splashFish"></div>
+  <!-- 海底方块地形（JS 生成，和鲨鱼同一套方块语言） -->
+  <svg class="sfloor" id="sfloor" viewBox="0 0 1400 300" preserveAspectRatio="none"
+       aria-hidden="true"></svg>
+  <div class="splash-c">
+    <h1>你的职场，就是一片海</h1>
+    <p>从找工作到上班，一个文件装下</p>
+    <!-- 两个通道 = 两种动线。选完只显示这一边的栏目，随时能切回来。 -->
+    <div class="tracks">
+      <button class="track" id="trackNew">
+        <b>我在找工作</b><span>不用先注册</span>
+        <em>看岗位 · 练面试 · 出事能救</em>
+      </button>
+      <button class="track" id="trackPro">
+        <b>我想看清自己</b><span>不急着投简历</span>
+        <em>记状态 · 补能力 · 读懂话</em>
+      </button>
+    </div>
+    <div class="splash-tip">只存在你这台设备上 · 通道随时可切换</div>
+  </div>
+</div>
+
+<!-- 跟着光标游的那条鱼：一层，四条影子（第一条是本体，后三条是残影）。
+     pointer-events:none，不挡任何点击。 -->
+<div class="herofish" id="heroFish" aria-hidden="true"></div>
+
+<!-- ==================== 主界面：左侧分栏 ==================== -->
+<div class="shell hidden" id="shell">
+  <aside class="side">
+    <div class="brand"><i></i>offer鲨 · 职场鱼塘</div>
+    <div class="me" id="meCard" title="回到我的鱼塘">
+      <span class="mav" id="meAv"></span>
+      <span class="mt"><b id="meName">未登录的鲨鱼</b><small id="meSub">点这里看我的鱼塘</small></span>
+      <span class="coin" id="meCoinTop">0</span>
+    </div>
+    <!-- 侧栏三组：怎么拿到这份工作 / 拿到之后怎么待下去 / 往里长。
+         图标是九只块面鲨鱼（icons.js 生成），每只带一个说明这一栏在干什么的标记。
+
+         ★ 置顶组（最上面那一组）不写死内容：navpin.js 会把下面三组里被钉住的那几项
+           搬上来。默认钉住「面试模拟」「劳议鲨手」：九个栏目里只有这两个是
+           「今天遇到事、今天就能用」，其余都是铺垫（要攒时间才有产出）。
+           每一项右边的 ⇧ 是开关：点一下上来，再点一下回原位。
+           被钉住的项是同一个按钮节点搬上去，不是复制一份，所以徽标/图标/跳转只有一份。 -->
+    <!-- 侧栏：一条动线，不是三个分类。
+         ★ 通道（新人 / 老人）决定显示哪几栏，顺序就是动线顺序：
+           新人 先有目标 → 练面试 → 补课 → 出事能救 → 看清对手
+           老人 先看自己 → 补能力 → 每天说一句 → 随时读懂话
+         栏目的顺序由 navpin.js 的 TRACKS 决定，不要在源码里改顺序（改了两边会不一致）。
+         每一项右边那颗 ⇧ 是置顶开关：点一下搬到最上面的「今天就能用」组。 -->
+    <nav class="nav" id="nav">
+      <div class="navtrack" id="navTrack">
+        <b id="navTrackName">我在找工作</b>
+        <button type="button" id="btnSwitchTrack" title="回到主界面，可以重新选通道">← 主界面</button>
+      </div>
+      <div class="navgrp navgrp-pin" id="navGrpPin" hidden>
+        <div class="navgrp-h"><span id="pinGrpH">今天就能用</span><span class="navgrp-line"></span><span class="navgrp-t">点 ⇧ 换</span></div>
+        <div id="navPinList"></div>
+      </div>
+      <div class="navlist" id="navList">
+        <div class="nvi" data-wv="job" data-track="new">
+          <button data-v="job"><i data-ic="job"></i>职场画像</button>
+          <button type="button" class="nvpin" data-pin="job"><i class="pinic" data-pic="job"></i></button>
+        </div>
+        <div class="nvi" data-wv="interview" data-track="new">
+          <button data-v="interview"><i data-ic="interview"></i>面试模拟</button>
+          <button type="button" class="nvpin" data-pin="interview"><i class="pinic" data-pic="interview"></i></button>
+        </div>
+        <div class="nvi" data-wv="rival" data-track="new">
+          <button data-v="rival"><i data-ic="rival"></i>你的竞品</button>
+          <button type="button" class="nvpin" data-pin="rival"><i class="pinic" data-pic="rival"></i></button>
+        </div>
+        <div class="nvi" data-wv="school" data-track="new">
+          <button data-v="school"><i data-ic="school"></i>小鱼课堂</button>
+          <button type="button" class="nvpin" data-pin="school"><i class="pinic" data-pic="school"></i></button>
+        </div>
+        <div class="nvi" data-wv="dispute" data-track="new">
+          <button data-v="dispute"><i data-ic="dispute"></i>劳议鲨手</button>
+          <button type="button" class="nvpin" data-pin="dispute"><i class="pinic" data-pic="dispute"></i></button>
+        </div>
+        <div class="nvi" data-wv="status" data-track="pro">
+          <button data-v="status"><i data-ic="status"></i>工作状态</button>
+          <button type="button" class="nvpin" data-pin="status"><i class="pinic" data-pic="status"></i></button>
+        </div>
+        <div class="nvi" data-wv="grow" data-track="pro">
+          <button data-v="grow"><i data-ic="grow"></i>进化雷达</button>
+          <button type="button" class="nvpin" data-pin="grow"><i class="pinic" data-pic="grow"></i></button>
+        </div>
+        <div class="nvi" data-wv="chatter" data-track="pro">
+          <button data-v="chatter"><i data-ic="chatter"></i>吐槽蛐蛐<span class="nb" id="navBadge" style="display:none">0</span></button>
+          <button type="button" class="nvpin" data-pin="chatter"><i class="pinic" data-pic="chatter"></i></button>
+        </div>
+        <div class="nvi" data-wv="tool" data-track="pro">
+          <button data-v="tool"><i data-ic="tool"></i>鱼群密语</button>
+          <button type="button" class="nvpin" data-pin="tool"><i class="pinic" data-pic="tool"></i></button>
+        </div>
+        <!-- ---------- 付费服务 ----------
+             ★ 这一项的 track 标记只能写 any（两个通道都要有它，不能写 new / pro）。
+               它在 TRACKS 的两条动线里都出现，navpin.js 的 trackBoth() 会让
+               「点它」不切换通道（否则从进阶通道点过来会被硬拽回求职通道）。
+             位置放在动线最末：前面都是「自己能做完的」，这里是「得找人帮的」。
+             ★ 下面这段注释里不许再出现 track 标记的字面量：build.py 会数源码里的次数。 -->
+        <div class="nvi" data-wv="pay" data-track="any">
+          <button data-v="pay"><i data-ic="pay"></i>付费服务</button>
+          <button type="button" class="nvpin" data-pin="pay"><i class="pinic" data-pic="pay"></i></button>
+        </div>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <button id="btnSet">设置</button>
+      <button id="btnWhy">说明</button>
+      <button id="btnPriv">隐私与数据</button>
+      <button id="btnExp">导出存档</button>
+      <button id="btnSvc">我的服务信息</button>
+      <!-- ★ 院校版（2026-09-27）：给就业办老师用的入口。
+           它**不进导航**（navpin.js 的 TRACKS 是按学生动线排的，院校版不属于
+           任何一条学生动线），所以放在这里，与「设置 / 说明 / 隐私与数据」同级。
+           页面里第一句就写明「这一页是给就业办老师看的，学生可以不用」。 -->
+      <button id="btnCampus">院校版</button>
+    </div>
+  </aside>
+
+  <main class="main"><div class="main-in">
+
+    <!-- ---------- 返回（在二级页面里永远够得着） ----------
+         在栏目内部子页（面试的子页 / 劳议的子页 / 寻岗的子页）→ 回该栏目首页；
+         已经在该栏目首页 → 回「我的鱼塘」。标签文案由 renderBackBar() 决定。 -->
+    <div class="backbar" id="backBar"><button type="button" id="btnBack">← 回到我的鱼塘</button></div>
+
+    <!-- ---------- 待办 · 提醒 · 日程（黏在内容区最上面，所有视图下都够得着） ---------- -->
+    <div class="todobar" id="todoBar">
+      <div class="tbrow">
+        <button class="tbtoggle" id="todoToggle" aria-expanded="false" aria-controls="todoPanel">
+          <i>✓</i><b>今日安排</b><span class="tbcount" id="todoCount">0</span>
+        </button>
+        <div class="tbquick">
+          <label for="todoInput" class="sr">新增待办</label>
+          <input type="text" id="todoInput" placeholder="加一件事，回车即可 ： 例：明天 10:00 投 3 家简历">
+          <button id="todoAddBtn">加</button>
+        </div>
+      </div>
+      <div class="tbpanel" id="todoPanel" hidden>
+        <div class="tbhead">
+          <span id="todoSummary"></span>
+          <div class="tbbtns">
+            <button id="todoNotify">开启系统通知</button>
+            <button id="todoICS">导出到日历</button>
+            <button id="todoClearDone">清掉已完成</button>
+          </div>
+        </div>
+        <div class="tblist" id="todoList"></div>
+        <p class="tbnote">本地文件<b>关掉页面后没法提醒</b>：这是结构决定的。所以「导出到日历」生成的 .ics 才是真正会响的那一条：导入手机日历后，系统会在到点前 15 分钟提醒你。页内提醒只在你开着这个页面时有效。</p>
+      </div>
+    </div>
+
+    <!-- ---------- 我的鱼塘 ---------- -->
+    <section class="vpane" id="v-me">
+      <div class="vhead">
+        <div class="eyebrow">我的鱼塘</div>
+        <h1>这是你的鱼塘</h1>
+      </div>
+      <div class="hero-me">
+        <div class="hv" id="meBig"></div>
+        <div style="flex:1;min-width:220px">
+          <h2 id="meBigName">未登录的鲨鱼</h2>
+          <div class="sub2" id="meBigSub">还没有名字。先去「职场画像」把简历交出来，画像会自动长出来。</div>
+        </div>
+        <div style="text-align:right">
+          <div class="coin" style="font-size:20px" id="meCoinBig">0</div>
+          <div style="font-size:11.5px;color:var(--dim2);margin-top:4px">鱼币</div>
+        </div>
+      </div>
+      <div class="statline" id="meStats"></div>
+      <div id="growthCard"></div>
+      <div id="shareProg"></div>
+      <div id="meProfile"></div>
+      <div class="card" id="meShare">
+        <h3>把这份画像变成一张图</h3>
+        <p class="note" style="margin-top:0">图里只有鱼、类型名、四维落点、主标签，不含个人信息。</p>
+        <div class="acts"><button class="cta big" id="btnShareMe">导出我的画像卡</button></div>
+      </div>
+      <div class="acts"><button class="pri big" id="btnGoChatter">去蛐蛐一句</button><button id="btnGoJob">去职场画像</button></div>
+    </section>
+
+    <!-- ---------- 工作状态 ---------- -->
+    <section class="vpane" id="v-status">
+      <div class="vhead">
+        <div class="eyebrow">工作状态</div>
+        <h1>先看清自己这条鱼，今天游得怎么样</h1>
+      </div>
+      <div id="statusOut"></div>
+    </section>
+
+    <!-- ---------- 小鱼课堂 ---------- -->
+    <section class="vpane" id="v-school">
+      <div class="vhead">
+        <div class="eyebrow">小鱼课堂</div>
+        <h1>学什么、跟谁学、别人怎么走过来的</h1>
+      </div>
+      <div id="schoolOut"></div>
+    </section>
+
+    <!-- ---------- 吐槽蛐蛐 ---------- -->
+    <section class="vpane" id="v-chatter">
+      <div class="vhead">
+        <div class="eyebrow">吐槽蛐蛐</div>
+        <h1>今天想蛐蛐点什么</h1>
+      </div>
+
+      <div class="chat-in">
+        <textarea id="chatIn" aria-label="写下今天想吐槽的那句话" placeholder="比如：改到第八版又回到第一版，还问我为什么没想法。"></textarea>
+        <div class="moodwrap">
+          <div class="moodhead">
+            <span>现在是什么状态</span>
+            <button id="btnMoodAdd" title="加一个自己的状态">＋ 自定义状态</button>
+          </div>
+          <div class="mood" id="moodRow"></div>
+        </div>
+        <div class="picrow">
+          <input type="file" id="fishPic" accept="image/*" aria-label="给这条鱼配一张图" style="display:none">
+          <button id="btnPic">＋ 配张图</button>
+          <span class="picnote" id="picNote"></span>
+        </div>
+        <div id="picPrev"></div>
+        <div class="chat-bar">
+          <span class="cnt">已写 <b id="chatCnt">0</b> 字 · 上限 120 字</span>
+          <button id="btnDice">换个状态</button>
+          <button class="pri" id="btnPost">放出去 → 变成鲨鱼</button>
+        </div>
+      </div>
+      <div class="subtabs" id="chatTabs">
+        <button data-t="pool" class="on">鱼池</button>
+        <button data-t="shop">皮肤商店</button>
+      </div>
+      <div id="poolWrap">
+        <div class="tank" id="tankOut"></div>
+        <div id="tankDetail"></div>
+        <div class="subtabs" id="poolTabs" style="margin-top:8px">
+          <button data-p="all" class="on">大家的鱼塘</button>
+          <button data-p="mine">我的鱼</button>
+          <button data-p="liked">我赞过的</button>
+        </div>
+        <p class="tanknote">池子里游的是大家的鱼（你自己放的 + 本地示例）。<b>点池子里任意一条</b>，上面那块就换成它；名册里的赞按钮可以直接点。</p>
+        <div class="pool" id="poolOut"></div>
+      </div>
+      <div id="shopWrap" style="display:none">
+        <div class="card" style="margin-top:14px">
+          <h3>商店 · 三个货架，随便挑</h3>
+          <p class="note" style="margin-top:0"><b class="hl">配色</b>换颜色、<b class="hl">衣服</b>换穿什么、<b class="hl">形状</b>换品种（萌纳丽鲨、职场巨齿鲨…轮廓真的不一样）。鱼币怎么来：每放一条鱼 +5，自己的鱼被赞一次 +2（本地模拟），第一次进来还有 120 新手礼包。换上新装扮后，<b class="hl">你之后放的每一条鱼</b>都会用它。当前鱼币 <b id="shopCoin">0</b>。</p>
+        </div>
+        <div class="subtabs" id="shopTabs">
+          <button data-shopshelf="skin" class="on">配色</button>
+          <button data-shopshelf="outfit">衣服</button>
+          <button data-shopshelf="shape">形状</button>
+        </div>
+        <div class="shop" id="shopOut"></div>
+      </div>
+    </section>
+
+    <!-- ---------- 进化雷达 ---------- -->
+    <section class="vpane" id="v-grow">
+      <div class="vhead">
+        <div class="eyebrow">进化雷达</div>
+        <!-- ★ 副标题 2026-09-27 改：这一页从「排课表」扩成「测 → 析 → 补 → 落地」四步，
+             标题要说出这四步，否则第一次进来的人只看到课表，以为另外三块不存在。 -->
+        <h1>先测一遍 · 再补一条 · 最后落回简历</h1>
+      </div>
+      <div id="evOut"></div>
+    </section>
+
+    <!-- ---------- 职场画像 ---------- -->
+    <section class="vpane" id="v-job">
+      <div class="vhead">
+        <div class="eyebrow">职场画像</div>
+        <h1>先看你是谁，再看你要什么</h1>
+      </div>
+      <div class="subtabs" id="jobTabs">
+        <button data-f="0" class="on">① 简历</button>
+        <button data-f="1">② 七词</button>
+        <button data-f="2">③ 匹配</button>
+      </div>
+
+      <div class="fpane" id="f0">
+        <div class="paste" style="margin-top:14px"><textarea id="resumeRaw" aria-label="把简历原文粘贴到这里" placeholder="把简历整段贴进来。工作经历和项目经历那两段最重要，带数字、带动作的最好。"></textarea></div>
+        <div class="drop" id="dropZone">也可以把文件上传到这里 · 支持 docx / pdf / txt</div>
+        <input type="file" id="file" accept=".txt,.md,.docx,.pdf" aria-label="从文件读取简历（支持 docx / pdf / txt）" style="display:none">
+        <div class="priv-inline"><b>简历只在这台设备上解析。</b>没有服务器，也没有地方能接收它：<span class="lk" id="pvInline">看数据到底存在哪</span></div>
+        <div class="acts">
+          <button class="pri big" id="btnParse">解析简历 · 自动抓画像</button>
+          <button id="btnDemo">没带简历？看个例子</button>
+          <button id="btnClear">清空</button>
+        </div>
+        <p class="note" id="p0hint"></p>
+        <div id="profFish"></div>
+        <div id="momProf"></div>
+      </div>
+
+      <div class="fpane" id="f1" style="display:none">
+        <div class="discbox" style="margin-top:14px"><b>挑几个，然后排序。</b>只选一个也能往下走：那等于把全部筛选权押在一件事上，结果会很极端但很准；选满七个，筛子更细，但每项权重都被摊薄。<b>三到五个通常最接近真实取舍。</b><span class="lk" id="lkSuggest">让画像替我猜一版</span></div>
+        <div id="dimTree"></div>
+        <div class="card hi">
+          <h3>已选 <span id="selCount">0</span> / 7 · 顺序就是权重</h3>
+          <div id="rankList"><div class="empty">还没选。上面展开任一类，点关键词。</div></div>
+          <div class="acts"><button class="pri big" id="btnToMatch">用这张画像去匹配</button></div>
+        </div>
+      </div>
+
+      <div class="fpane" id="f2" style="display:none">
+        <div id="matchOut"></div>
+        <div class="acts"><button class="pri big" id="btnToSim">进面试模拟</button><button id="btnBack2">回去改关键词</button></div>
+      </div>
+    </section>
+
+    <!-- ---------- 面试模拟 ---------- -->
+    <section class="vpane" id="v-interview">
+      <div class="vhead">
+        <div class="eyebrow">面试模拟</div>
+        <h1>把这一仗先打一遍</h1>
+      </div>
+      <div class="subtabs" id="ivTabs">
+        <button data-i="0" class="on">模拟</button>
+        <button data-i="1">群面</button>
+        <button data-i="2">即时咨询</button>
+        <button data-i="3">错题集</button>
+        <button data-i="4">复盘</button>
+      </div>
+      <div class="ipane" id="i0">
+        <!-- ★ 对话区在设置之前：正在打的时候进来第一眼就是对话本身，
+             设置（谁面你 / 换面试官 / 压力模式）沉到下面，不占第一屏。 -->
+        <div class="msgs" id="msgs" style="margin-top:14px"></div>
+        <div id="ivSetup"></div>
+      </div>
+      <div class="ipane" id="i1" style="display:none">
+        <div id="grpOut" style="margin-top:14px"></div>
+      </div>
+      <div class="ipane" id="i2" style="display:none">
+        <div id="consGate"></div>
+        <div id="consForm">
+          <div class="card"><h3>即时咨询 · 把你的问题整理成能回答的样子</h3>
+            <p class="note" style="margin-top:0">写清你卡在哪。如果你在「设置」里配了模型，它会直接回答你；
+              <b>没配也没关系</b>：它会给你一张<b class="hl">可以直接发出去的提问卡</b>：目标岗位、年限、画像标签、你最在意的七件事，全部自动带好。
+              大多数人的问题不是没人能答，是问题本身没写清。</p>
+            <label class="rvfld"><span>你的问题</span>
+              <textarea id="consIn" placeholder="例：面试问到上一份工作的离职原因，我该说实话吗？说多少算合适？"></textarea></label>
+            <div class="acts"><button class="pri big" id="consGo">问一问</button></div>
+          </div>
+          <div id="consOut"></div>
+        </div>
+      </div>
+      <div class="ipane" id="i3" style="display:none">
+        <div class="book" id="bookOut" style="margin-top:14px"></div>
+      </div>
+      <div class="ipane" id="i4" style="display:none">
+        <div id="report" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <!-- ---------- 劳议鲨手 ---------- -->
+    <section class="vpane" id="v-dispute">
+      <div class="vhead">
+        <div class="eyebrow">劳议鲨手</div>
+        <h1>先把事实理清，再决定说什么</h1>
+      </div>
+      <div id="disCaseHost"></div>
+      <div class="subtabs" id="disTabs">
+        <button data-d="0" class="on">① 我的情况</button>
+        <button data-d="1">② 证据清单</button>
+        <button data-d="2">③ 谈话演练</button>
+      </div>
+      <div class="dpane" id="d0"></div>
+      <div class="dpane" id="d1" style="display:none"></div>
+      <div class="dpane" id="d2" style="display:none"></div>
+      <div class="legallinks">
+        <b>真的出事了，先找谁</b>
+        <a href="https://www.12348.gov.cn/" target="_blank" rel="noopener noreferrer">12348 公共法律服务热线 ↗</a>
+        <a href="https://www.12333.gov.cn/" target="_blank" rel="noopener noreferrer">12333 人社咨询热线 ↗</a>
+      </div>
+      <div class="disfixed">本模块是流程与证据清单工具，<b>不是法律意见</b>，不预测结果，也不计算赔偿金额。内容依据公开法律法规文本整理；法条会修订、各地裁审口径存在差异，关键决策请与执业律师核对。</div>
+    </section>
+
+    <!-- ---------- 你的竞品 ---------- -->
+    <section class="vpane" id="v-rival">
+      <div class="vhead">
+        <div class="eyebrow">你的竞品</div>
+        <h1>你在跟谁抢这个岗位</h1>
+      </div>
+      <div class="subtabs" id="rvTabs">
+        <button data-r="0" class="on">① 我在跟谁抢</button>
+        <button data-r="1">② 去哪儿看</button>
+        <button data-r="2">③ 竞品动态</button>
+      </div>
+      <div class="rvpane" id="r0"></div>
+      <div class="rvpane" id="r1" style="display:none"></div>
+      <div class="rvpane" id="r2" style="display:none"></div>
+    </section>
+
+    <!-- ---------- 鱼群密语（免注册入口） ---------- -->
+    <section class="vpane" id="v-tool">
+      <div class="vhead">
+        <div class="eyebrow">鱼群密语</div>
+        <h1>这句话，他到底什么意思</h1>
+      </div>
+      <div id="toolOut"></div>
+      <div id="momBbx"></div>
+    </section>
+
+    <!-- ---------- 付费服务 ----------
+         这一页是常驻栏目，不是弹窗、也不是插入点。
+         ★ 面板内容由 pay.js 的 renderPay() 全量生成：目录（PAY_CAT）改一处即可，
+           不要在 body.html 里写死任何一条，否则两个通道的内容会分叉。
+         ★ 这里不放 <p> 副标题：全站那条「vhead 底下不许有灰字」的断言盯着它。 -->
+    <section class="vpane" id="v-pay">
+      <div class="vhead">
+        <div class="eyebrow">付费服务</div>
+        <h1>能自己做的在上面，需要人帮的在这里</h1>
+      </div>
+      <div id="payOut"></div>
+    </section>
+
+    <!-- ---------- 院校版 ----------
+         入口在侧栏底部（#btnCampus），不在导航里：导航是按学生动线排的，
+         院校版不属于任何一条学生动线。
+         ★ 面板内容由 campus.js 的 renderCampus() 全量生成，这里只留一个宿主 div。
+         ★ 这里同样不放 <p> 副标题：全站那条「vhead 底下不许有灰字」的断言盯着它。 -->
+    <section class="vpane" id="v-campus">
+      <div class="vhead">
+        <div class="eyebrow">院校版</div>
+        <h1>给一所院校：怎么落地、怎么验收、数据经过谁的手</h1>
+      </div>
+      <div id="campusOut"></div>
+    </section>
+
+  </div>
+
+  <!-- 常驻分享入口：跟着你走到哪都能分享当前这一页 -->
+  <button class="sharefab" id="shareFab" title="把这一页的成果分享出去">
+    <i>↗</i><b>分享</b><small id="shareFabTip">这一页</small>
+  </button>
+
+  </main>
+</div>
+
+<div class="composer hidden" id="composer">
+  <div class="cinner">
+    <button class="mic" id="btnMic" title="语音输入，可以再停">🎙</button>
+    <textarea id="inp" aria-label="回答面试官刚才这句话" placeholder="把你想说的打在这里。答完点发送。"></textarea>
+    <button class="send" id="btnSend">↑</button>
+  </div>
+</div>
+
+<div class="mask" id="mask"><div class="modal"><div class="mh"><span id="mTitle">说明</span><button id="mClose">✕</button></div><div class="mb" id="mBody"></div><div class="mf" id="mFoot"></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!--MERGE_JS-->
+
+</body>
+</html>

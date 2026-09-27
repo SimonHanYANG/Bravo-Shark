@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# 本地会话/工具状态，不入库
+.claude/
+.netlify/
+
+# 密钥（Netlify token 存这里，绝不入库）
+.netlify_token
+*.token
+.env
+.env.local
+
+# 日志与临时文件
+*.log
+*.tmp
